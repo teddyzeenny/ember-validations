@@ -1,7 +1,7 @@
 Ember.Validations.validators.Base = Ember.Object.extend({
   init: function() {
     this.set('errors', Ember.makeArray());
-    this.isValid = undefined;
+    this.isRecordValid = undefined;
     this._dependentValidationKeys = Ember.makeArray();
     this.conditionals = {
       'if': this.get('options.if'),
@@ -31,21 +31,25 @@ Ember.Validations.validators.Base = Ember.Object.extend({
     }
   },
   validate: function() {
+    this.errors.clear();
+    this.set('isRecordValid', true);
     if (this.canValidate()) {
-      this.errors.clear();
       this.call();
       if (this.errors.length > 0) {
-        if (this.get('isValid') === false) {
-          this.notifyPropertyChange('isValid');
+        if (this.get('isRecordValid') === false) {
+          this.notifyPropertyChange('isRecordValid');
         } else {
-          this.set('isValid', false);
+          this.set('isRecordValid', false);
         }
-        return Ember.RSVP.reject();
+        var defer = Ember.RSVP.defer();
+        defer.promise.then(null, Ember.K);
+        defer.reject('Ember Validation Failed');
+        return defer.promise;
       } else {
-        if (this.get('isValid') === true) {
-          this.notifyPropertyChange('isValid');
+        if (this.get('isRecordValid') === true) {
+          this.notifyPropertyChange('isRecordValid');
         } else {
-          this.set('isValid', true);
+          this.set('isRecordValid', true);
         }
         return Ember.RSVP.resolve();
       }
